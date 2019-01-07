@@ -1,0 +1,40 @@
+
+DROP TABLE  NewPlatformData.temp_PromoteRebateBase1546704000
+CREATE TABLE NewPlatformData.temp_PromoteRebateBase1546704000
+SELECT * FROM
+(SELECT * FROM PromoteRebateBase20190102235959 WHERE UserID in( 1124551 ,1124554,1124555,1124556)
+UNION 
+SELECT * FROM PromoteRebateBase20190103235959 WHERE UserID in( 1124551 ,1124554,1124555,1124556)
+UNION 
+SELECT * FROM PromoteRebateBase20190104235959 WHERE UserID in( 1124551 ,1124554,1124555,1124556)
+UNION 
+SELECT * FROM PromoteRebateBase20190105235959 WHERE UserID in( 1124551 ,1124554,1124555,1124556)
+UNION 
+SELECT * FROM PromoteRebateBase20190106235959 WHERE UserID in( 1124551 ,1124554,1124555,1124556)
+) a
+WHERE GenlzerID=1124551 
+ 
+
+select a.UserId,a.Account,a.NickName,
+Round(c.OwerRebate/100,2) OwerRebate,
+Round(c.LowerRebate/100,2) LowerRebate
+from 
+(select * from (SELECT t_accountID UserId,t_accountName Account,t_nickName NickName FROM platform_data1.t_accountInfo where t_accountID=1124551 
+union all SELECT t_accountID UserId,t_accountName Account,t_nickName NickName FROM platform_data2.t_accountInfo where t_accountID=1124551 
+union all SELECT t_accountID UserId,t_accountName Account,t_nickName NickName FROM platform_data3.t_accountInfo where t_accountID=1124551 
+union all SELECT t_accountID UserId,t_accountName Account,t_nickName NickName FROM platform_data4.t_accountInfo where t_accountID=1124551 
+union all SELECT t_accountID UserId,t_accountName Account,t_nickName NickName FROM platform_data5.t_accountInfo where t_accountID=1124551 
+union all SELECT t_accountID UserId,t_accountName Account,t_nickName NickName FROM platform_data6.t_accountInfo where t_accountID=1124551 
+union all SELECT t_accountID UserId,t_accountName Account,t_nickName NickName FROM platform_data7.t_accountInfo where t_accountID=1124551 
+union all SELECT t_accountID UserId,t_accountName Account,t_nickName NickName FROM platform_data8.t_accountInfo where t_accountID=1124551 
+) b) a
+
+LEFT JOIN(
+select 1124551 UserID ,SUM(CASE WHEN GenlzerID=1124551 AND userid=1124551 THEN GainNum*GameGainScale/10000*GainScale/100 ELSE 0 END) OwerRebate,
+SUM(CASE WHEN GenlzerID<>1124551 THEN GainNum*GameGainScale/10000*GainScale/100 ELSE 0 END) LowerRebate from NewPlatformData.temp_PromoteRebateBase1546704000
+) c on a.UserId=c.UserID
+LEFT JOIN(
+select 1124551 UserID ,SUM(GainNum) TeamTotalBet from
+(SELECT GainNum,BusinessGuid from NewPlatformData.temp_PromoteRebateBase1546704000 GROUP BY GainNum,BusinessGuid) a
+) d on a.UserId=d.UserID
+GROUP BY a.UserId,Account,NickName,OwerRebate,LowerRebate;
